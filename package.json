@@ -1,0 +1,12 @@
+{
+	"name": "tools",
+	"version": "1.0.0",
+	"description": "A collection of useful web apps",
+	"main": "server.js",
+	"scripts": {
+		"start": "node server.js"
+	},
+	"dependencies": {
+		"express": "^4.18.2"
+	}
+}
