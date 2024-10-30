@@ -1,9 +1,13 @@
-const express = require('express');
+import express from 'express';
+import path from "node:path";
+
+import logger from "../../utils/logger";
+
 const router = express.Router();
-const path = require('node:path');
 
 router.get('/', (req, res) => {
+  logger.debug(`"${req.session.username}" is using /nfc`)
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-module.exports = router;
+export default router;

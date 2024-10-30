@@ -15,6 +15,9 @@
     "indentStyle": "space",
     "indentWidth": 2
   },
+  "files": {
+    "include": ["**/*.{js,ts,jsx,tsx,html,css}"]
+  },
   "javascript": {
     "formatter": {
       "quoteStyle": "single"
