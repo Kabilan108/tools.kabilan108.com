@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import express from 'express';
-import { db } from '../db/setup';
-import logger from '../utils/logger';
+import { db } from '../../db/setup';
+import logger from '../../utils/logger';
 
 const router = express.Router();
 

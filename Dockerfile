@@ -5,4 +5,4 @@ COPY bun.lockb ./
 RUN bun install
 COPY . .
 EXPOSE ${PORT:-3000}
-CMD ["bun", "server.js"]
+CMD ["bun", "main.js"]

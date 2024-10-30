@@ -1,15 +1,15 @@
 import express from 'express';
 import session from 'express-session';
 
-import SQLiteStore from './db/session-store';
-import { db } from './db/setup';
-import { requireApiKey, requireAuth } from './middleware/auth';
-import env from './utils/env';
-import logger from './utils/logger';
+import SQLiteStore from './src/db/session-store';
+import { db } from './src/db/setup';
+import { requireApiKey, requireAuth } from './src/middleware/auth';
+import env from './src/utils/env';
+import logger from './src/utils/logger';
 
-import authRoutes from './routes/auth';
-import userRoutes from './routes/users';
-import nfcRoutes from './tools/nfc/routes';
+import authRoutes from './src/routes/auth';
+import userRoutes from './src/routes/api/users';
+import nfcRoutes from './src/routes/nfc/routes';
 
 const app = express();
 
