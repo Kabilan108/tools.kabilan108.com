@@ -1,5 +1,5 @@
 const parseVar = ({ env, parse, value }) => {
-  return env ? parse() : value;
+  return env ? parse(env) : value;
 };
 
 const COOKIE_AGE = parseVar({
@@ -32,6 +32,22 @@ const PORT = parseVar({
   value: 3000,
 });
 
+const SEED_API_KEY = parseVar({
+  env: process.env.SEED_API_KEY,
+  parse: (value) => value,
+  value: 'dont-use-this-api-key',
+});
+const SEED_USERNAME = parseVar({
+  env: process.env.SEED_USERNAME,
+  parse: (value) => value,
+  value: 'test-user',
+});
+const SEED_PASSWORD = parseVar({
+  env: process.env.SEED_PASSWORD,
+  parse: (value) => value,
+  value: 'test-password',
+});
+
 const SESSION_LIFESPAN = parseVar({
   env: process.env.SESSION_LIFESPAN,
   parse: (value) => Number.parseInt(value, 10),
@@ -50,6 +66,9 @@ export default {
   DB_PATH,
   NODE_ENV,
   PORT,
+  SEED_API_KEY,
+  SEED_USERNAME,
+  SEED_PASSWORD,
   SESSION_SECRET,
   SESSION_LIFESPAN,
 };
