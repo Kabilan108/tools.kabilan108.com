@@ -46,7 +46,8 @@ router.get('/updates', requireAuth(true), (req, res) => {
 router.get("/connections", requireApiKey, (req, res) => {
   const apiKey = req.headers['x-api-key']
   logger.debug(`API key "${apiKey}" checking connections (count: ${connections.size})`)
-  return res.status(200).json({ connections: JSON.stringify(connections, null, 2) })
+  logger.info(`connections: ${JSON.stringify(connections)}`)
+  return res.status(200).json({ data: JSON.stringify(connections) });
 })
 
 // endpoint to send NFC data
