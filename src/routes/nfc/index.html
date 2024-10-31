@@ -65,6 +65,29 @@
       background-color: #d9edf7;
       color: #31708f;
     }
+
+    .json-editor {
+      width: 100%;
+      height: 200px;
+      font-family: monospace;
+    }
+
+    .encrypt-controls {
+      margin: 15px 0;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .validation-error {
+      border-color: #dc3545;
+    }
+
+    #json-validation {
+      color: #dc3545;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -76,19 +99,42 @@
 
     <div id="controls">
       <h2>Write to NFC Tag</h2>
-      <textarea id="write-text" rows="4" placeholder="Enter text to write to NFC tag">
-      </textarea>
+
+      <div class="encrypt-controls">
+        <label>
+          <input type="checkbox" id="encrypt-data"> Encrypt data
+        </label>
+        <input type="password" id="encryption-key" placeholder="Encryption key" disabled>
+      </div>
+
+      <div>
+        <label>
+          <input type="checkbox" id="use-json"> Use JSON editor
+        </label>
+      </div>
+
+      <textarea id="write-text" rows="4" placeholder="Enter text to write to NFC tag"></textarea>
+      <textarea id="json-editor" class="json-editor" style="display: none;"
+                placeholder="Enter valid JSON"></textarea>
+      <div id="json-validation"></div>
+
       <button id="write-button">Write to Tag</button>
 
       <h2>Read from NFC Tag</h2>
       <button id="read-button">Read from Tag</button>
-      <textarea id="read-text" rows="4" readonly placeholder="Tag content will appear here">
-      </textarea>
-    </div>
+      <textarea id="read-text" rows="4" readonly placeholder="Tag content will appear here"></textarea>
 
+      <div class="encrypt-controls">
+        <label>
+          <input type="checkbox" id="decrypt-data"> Decrypt data
+        </label>
+        <input type="password" id="decryption-key" placeholder="Decryption key" disabled>
+      </div>
+    </div>
     <div id="status"></div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <script>
     const writeButton = document.getElementById('write-button');
     const readButton = document.getElementById('read-button');
@@ -96,6 +142,13 @@
     const readText = document.getElementById('read-text');
     const statusDiv = document.getElementById('status');
     const supportStatus = document.getElementById('support-status');
+    const jsonEditor = document.getElementById('json-editor');
+    const useJsonCheckbox = document.getElementById('use-json');
+    const jsonValidation = document.getElementById('json-validation')
+    const encryptCheckbox = document.getElementById('encrypt-data');
+    const encryptionKey = document.getElementById('encryption-key');
+    const decryptCheckbox = document.getElementById('decrypt-data');
+    const decryptionKey = document.getElementById('decryption-key');
 
     // Check if Web NFC is supported
     if ('NDEFReader' in window) {
@@ -113,10 +166,77 @@
       statusDiv.className = type;
     }
 
+    useJsonCheckbox.addEventListener('change', (e) => {
+      writeText.style.display = e.target.checked ? 'none' : 'block';
+      jsonEditor.style.display = e.target.checked ? 'block' : 'none';
+
+      if (e.target.checked) {
+        try {
+          // Try to parse current text as JSON
+          const currentText = writeText.value.trim();
+          if (currentText) {
+            const parsed = JSON.parse(currentText);
+            jsonEditor.value = JSON.stringify(parsed, null, 2);
+          }
+        } catch {
+          jsonEditor.value = '';
+        }
+      } else {
+        try {
+          writeText.value = JSON.stringify(JSON.parse(jsonEditor.value));
+        } catch {
+          writeText.value = jsonEditor.value;
+        }
+      }
+    });
+
+    // JSON validation
+    jsonEditor.addEventListener('input', () => {
+      try {
+        const text = jsonEditor.value.trim();
+        if (text) {
+          JSON.parse(text);
+          jsonEditor.classList.remove('validation-error');
+          jsonValidation.textContent = '';
+          writeButton.disabled = false;
+        }
+      } catch (err) {
+        jsonEditor.classList.add('validation-error');
+        jsonValidation.textContent = 'Invalid JSON: ' + err.message;
+        writeButton.disabled = true;
+      }
+    });
+
+    // encryption
+    encryptCheckbox.addEventListener('change', (e) => {
+      encryptionKey.disabled = !e.target.checked;
+    })
+    decryptCheckbox.addEventListener('change', (e) => {
+      decryptionKey.disabled = !e.target.checked;
+    })
+
     async function writeToTag() {
-      if (!writeText.value) {
+      let dataToWrite;
+
+      if (useJsonCheckbox.checked) {
+        try {
+          dataToWrite = JSON.stringify(JSON.parse(jsonEditor.value));
+        } catch (err) {
+          showStatus('Invalid JSON data', 'error')
+          return;
+        }
+      } else {
+        dataToWrite = writeText.value;
+      }
+
+      if (!dataToWrite) {
         showStatus('Please enter some text to write', 'error');
         return;
+      }
+
+      // encrypt if enabled
+      if (encryptCheckbox.checked && encryptionKey.value) {
+        dataToWrite = CryptoJS.AES.encrypt(dataToWrite, encryptionKey.value).toString();
       }
 
       try {
@@ -126,7 +246,7 @@
         await ndef.write({
           records: [{
             recordType: "text",
-            data: writeText.value
+            data: dataToWrite
           }]
         });
 
@@ -148,7 +268,19 @@
           for (const record of message.records) {
             if (record.recordType === "text") {
               const textDecoder = new TextDecoder();
-              const text = textDecoder.decode(record.data);
+              let text = textDecoder.decode(record.data);
+
+              // attempt to decrypt
+              if (decryptCheckbox.checked && decryptionKey.value) {
+                try {
+                  const bytes = CryptoJS.AES.decrypt(text, decryptionKey.value);
+                  text = bytes.toString(CryptoJS.enc.Utf8);
+                } catch (err) {
+                  showStatus('Failed to decrypt: invalid key or data', 'error')
+                  return
+                }
+              }
+
               readText.value = text;
               showStatus('Successfully read from NFC tag!', 'success');
             }
@@ -163,6 +295,36 @@
 
     writeButton.addEventListener('click', writeToTag);
     readButton.addEventListener('click', readFromTag);
+
+    // handle remote updates
+    const setupSSE = () => {
+      const eventSource = new EventSource('/nfc/updates');
+
+      eventSource.onmessage = (event) => {
+        const {data,format} = JSON.parse(event.data);
+
+        if (format === 'json' || (!format && data.trim().startswith('{'))) {
+          // switch to JSON mode
+          if (!useJsonCheckbox.checked) {
+            useJsonCheckbox.checked = true;
+            writeText.style.display = 'none';
+            jsonEditor.style.display = 'block';
+          }
+          jsonEditor.value = JSON.stringify(JSON.parse(data), null, 2);
+        } else {
+          // switch to text mode
+          if (useJsonCheckbox.checked) {
+            useJsonCheckbox.checked = false;
+            writeText.style.display = 'block';
+            jsonEditor.style.display = 'none';
+          }
+          writeText.value = data;
+        }
+
+        showStatus('Received remote update', 'info');
+      }
+    }
+    setupSSE();
   </script>
 </body>
 </html>

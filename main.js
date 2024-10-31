@@ -37,7 +37,8 @@ app.use(
 );
 
 // define routes
-app.use('/nfc', requireAuth(true), nfcRoutes);
+//app.use('/nfc', requireAuth(true), nfcRoutes);
+app.use('/nfc', nfcRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/users', requireApiKey, userRoutes);
 
