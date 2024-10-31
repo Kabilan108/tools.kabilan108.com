@@ -62,6 +62,15 @@ app.get('/', requireAuth(false), (req, res) => {
   `);
 });
 
+// 404 handler - must be last route
+app.use((req, res) => {
+  res.status(404).send(`
+    <h1>404 - Page Not Found</h1>
+    <p>The page you're looking for doesn't exist.</p>
+    <p><a href="/">Return to Home</a></p>
+  `);
+});
+
 app.listen(env.PORT, () => {
   logger.info(`server running at http://localhost:${env.PORT}`);
 });
