@@ -27,8 +27,13 @@ router.get('/updates', requireAuth(true), (req, res) => {
   })
 
   // store connection
-  // TODO: error handling if session already exists?
-  logger.debug(`"${req.session.username}" hit /updates`)
+  if (connections.has(userId)) {
+    logger.warn(`Closing existing SSE connection for user "${req.session.username}"`)
+    const existing = connections.get(userId);
+    existing.end();
+  }
+  
+  logger.debug(`Opening SSE connection for user "${req.session.username}" (${userId})`)
   connections.set(userId, res);
 
   // remove connection on disconnect
@@ -40,7 +45,7 @@ router.get('/updates', requireAuth(true), (req, res) => {
 // endpoint to check connections
 router.get("/connections", requireApiKey, (req, res) => {
   const apiKey = req.headers['x-api-key']
-  logger.debug(`user checking connections: ${apiKey}`)
+  logger.debug(`API key "${apiKey}" checking connections (count: ${connections.size})`)
   return res.status(200).json({ connections: JSON.stringify(connections, null, 2) })
 })
 
@@ -58,7 +63,7 @@ router.post('/write-data', requireApiKey, (req, res) => {
   }
 
   // validate JSON data
-  if (format === 'json' || (!format && data.trim().startswith('{'))) {
+  if (format === 'json' || (!format && data.trim().startsWith('{'))) {
     try {
       JSON.parse(data);
     } catch (err) {

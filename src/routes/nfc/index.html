@@ -303,7 +303,7 @@
       eventSource.onmessage = (event) => {
         const {data,format} = JSON.parse(event.data);
 
-        if (format === 'json' || (!format && data.trim().startswith('{'))) {
+        if (format === 'json' || (!format && data.trim().startsWith('{'))) {
           // switch to JSON mode
           if (!useJsonCheckbox.checked) {
             useJsonCheckbox.checked = true;
