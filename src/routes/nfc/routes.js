@@ -32,12 +32,14 @@ router.get('/updates', requireAuth(true), (req, res) => {
     const existing = connections.get(userId);
     existing.end();
   }
-  
+
   logger.debug(`Opening SSE connection for user "${req.session.username}" (${userId})`)
   connections.set(userId, res);
+  res.write(`data: ${JSON.stringify({data: null, format: null})}\n\n`)
 
   // remove connection on disconnect
   req.on('close', () => {
+    logger.debug(`user "${req.session.username}" (${userId}) closed SSE connection`)
     connections.delete(userId);
   })
 })
@@ -46,12 +48,12 @@ router.get('/updates', requireAuth(true), (req, res) => {
 router.get("/connections", requireApiKey, (req, res) => {
   const apiKey = req.headers['x-api-key']
   logger.debug(`API key "${apiKey}" checking connections (count: ${connections.size})`)
-  
+
   // Convert Map to array of connected user IDs
   const connectedUsers = Array.from(connections.keys());
   logger.info(`Connected users: ${JSON.stringify(connectedUsers)}`)
-  
-  return res.status(200).json({ 
+
+  return res.status(200).json({
     count: connections.size,
     connectedUsers: connectedUsers
   });
@@ -59,7 +61,8 @@ router.get("/connections", requireApiKey, (req, res) => {
 
 // endpoint to send NFC data
 router.post('/write-data', requireApiKey, (req, res) => {
-  const {userId, data, format} = req.body;
+  const apiKey = req.headers['x-api-key']
+  const {userId, data, format, key} = req.body;
 
   if (!userId || !data) {
     return res.status(400).json({ error: 'missing userId or data' })
@@ -85,7 +88,8 @@ router.post('/write-data', requireApiKey, (req, res) => {
   }
 
   // send data to connected client
-  connection.write(`data: ${JSON.stringify({data, format})}\n\n`)
+  logger.debug(`API key "${apiKey}" writing data to user ${userId}'s session`)
+  connection.write(`data: ${JSON.stringify({data, format, key})}\n\n`)
 
   res.json({message: 'data sent successfully'})
 })

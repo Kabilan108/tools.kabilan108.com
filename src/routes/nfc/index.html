@@ -102,7 +102,7 @@
 
       <div class="encrypt-controls">
         <label>
-          <input type="checkbox" id="encrypt-data"> Encrypt data
+          <input type="checkbox" id="encrypt-data"> Use encryption key
         </label>
         <input type="password" id="encryption-key" placeholder="Encryption key" disabled>
       </div>
@@ -123,13 +123,6 @@
       <h2>Read from NFC Tag</h2>
       <button id="read-button">Read from Tag</button>
       <textarea id="read-text" rows="4" readonly placeholder="Tag content will appear here"></textarea>
-
-      <div class="encrypt-controls">
-        <label>
-          <input type="checkbox" id="decrypt-data"> Decrypt data
-        </label>
-        <input type="password" id="decryption-key" placeholder="Decryption key" disabled>
-      </div>
     </div>
     <div id="status"></div>
   </div>
@@ -147,8 +140,6 @@
     const jsonValidation = document.getElementById('json-validation')
     const encryptCheckbox = document.getElementById('encrypt-data');
     const encryptionKey = document.getElementById('encryption-key');
-    const decryptCheckbox = document.getElementById('decrypt-data');
-    const decryptionKey = document.getElementById('decryption-key');
 
     // Check if Web NFC is supported
     if ('NDEFReader' in window) {
@@ -211,9 +202,6 @@
     encryptCheckbox.addEventListener('change', (e) => {
       encryptionKey.disabled = !e.target.checked;
     })
-    decryptCheckbox.addEventListener('change', (e) => {
-      decryptionKey.disabled = !e.target.checked;
-    })
 
     async function writeToTag() {
       let dataToWrite;
@@ -271,9 +259,9 @@
               let text = textDecoder.decode(record.data);
 
               // attempt to decrypt
-              if (decryptCheckbox.checked && decryptionKey.value) {
+              if (encryptCheckbox.checked && encryptionKey.value) {
                 try {
-                  const bytes = CryptoJS.AES.decrypt(text, decryptionKey.value);
+                  const bytes = CryptoJS.AES.decrypt(text, encryptionKey.value);
                   text = bytes.toString(CryptoJS.enc.Utf8);
                 } catch (err) {
                   showStatus('Failed to decrypt: invalid key or data', 'error')
@@ -301,7 +289,7 @@
       const eventSource = new EventSource('/nfc/updates');
 
       eventSource.onmessage = (event) => {
-        const {data,format} = JSON.parse(event.data);
+        const {data,format,key} = JSON.parse(event.data);
 
         if (format === 'json' || (!format && data.trim().startsWith('{'))) {
           // switch to JSON mode
@@ -319,6 +307,24 @@
             jsonEditor.style.display = 'none';
           }
           writeText.value = data;
+        }
+
+        if (key) {
+          if (!encryptCheckbox.checked) {
+            encryptCheckbox.checked = true
+          }
+          if (encryptionKey.disabled) {
+            encryptionKey.disabled = false
+          }
+          encryptionKey.value = key
+        } else {
+          if (encryptCheckbox.checked) {
+            encryptCheckbox.checked = false
+          }
+          encryptionKey.value = ""
+          if (!encryptionKey.disabled) {
+            encryptionKey.disabled = true
+          }
         }
 
         showStatus('Received remote update', 'info');
