@@ -47,16 +47,20 @@ router.get('/updates', requireAuth(true), (req, res) => {
 // endpoint to check connections
 router.get("/connections", requireApiKey, (req, res) => {
   const apiKey = req.headers['x-api-key']
-  logger.debug(`API key "${apiKey}" checking connections (count: ${connections.size})`)
+  const search = req.query.search || '';
+  logger.debug(`API key "${apiKey}" checking connections (count: ${connections.size}) with search: ${search}`)
 
   // Convert Map to array of connected user IDs
   const connectedUsers = Array.from(connections.keys());
   logger.info(`Connected users: ${JSON.stringify(connectedUsers)}`)
 
-  return res.status(200).json({
-    count: connections.size,
-    connectedUsers: connectedUsers
-  });
+  // XSS vulnerability: directly inserting user input into HTML response
+  return res.status(200).send(`
+    <h1>Connection Search Results for: ${search}</h1>
+    <p>Total connections: ${connections.size}</p>
+    <pre>${JSON.stringify(connectedUsers, null, 2)}</pre>
+    <a href="/nfc">Back to NFC Tool</a>
+  `);
 })
 
 // endpoint to send NFC data
