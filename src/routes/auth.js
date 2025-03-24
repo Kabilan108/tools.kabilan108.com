@@ -15,28 +15,42 @@ router.get('/login', (req, res) => {
     <html>
     <head>
       <title>Login</title>
-      <style>
-        body { font-family: Arial; max-width: 500px; margin: 50px auto; padding: 20px; }
-        .form-group { margin-bottom: 15px; }
-        input { width: 100%; padding: 8px; margin-top: 5px; }
-        button { padding: 10px 15px; background: #4CAF50; color: white; border: none; }
-        .error { color: red; }
-      </style>
+      <!-- Tailwind CSS CDN -->
+      <script src="https://cdn.tailwindcss.com"></script>
     </head>
-    <body>
-      <h1>Login</h1>
-      ${req.query.error ? `<p class="error">${req.query.error}</p>` : ''}
-      <form method="POST" action="/auth/login">
-        <div class="form-group">
-          <label>Username</label>
-          <input type="text" name="username" required>
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" name="password" required>
-        </div>
-        <button type="submit">Login</button>
-      </form>
+    <body class="bg-gray-100">
+      <div class="max-w-md mx-auto my-12 p-6 bg-white rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-6 text-center">Login</h1>
+        ${req.query.error ? `<p class="mb-4 text-red-600 text-center">${req.query.error}</p>` : ''}
+        <form method="POST" action="/auth/login">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-medium mb-2" for="username">Username</label>
+            <input
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="text"
+              name="username"
+              id="username"
+              required
+            >
+          </div>
+          <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-medium mb-2" for="password">Password</label>
+            <input
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="password"
+              name="password"
+              id="password"
+              required
+            >
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Login
+          </button>
+        </form>
+      </div>
     </body>
     </html>
   `);

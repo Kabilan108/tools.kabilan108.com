@@ -1,130 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NFC Reader/Writer</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #f0f0f0;
-    }
-
-    .container {
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin: 5px;
-      width: 100%;
-    }
-
-    button:disabled {
-      background-color: #cccccc;
-      cursor: not-allowed;
-    }
-
-    textarea {
-      width: 100%;
-      margin: 10px 0;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-
-    #status {
-      margin-top: 20px;
-      padding: 10px;
-      border-radius: 4px;
-    }
-
-    .success {
-      background-color: #dff0d8;
-      color: #3c763d;
-    }
-
-    .error {
-      background-color: #f2dede;
-      color: #a94442;
-    }
-
-    .info {
-      background-color: #d9edf7;
-      color: #31708f;
-    }
-
-    .json-editor {
-      width: 100%;
-      height: 200px;
-      font-family: monospace;
-    }
-
-    .encrypt-controls {
-      margin: 15px 0;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-
-    .validation-error {
-      border-color: #dc3545;
-    }
-
-    #json-validation {
-      color: #dc3545;
-      font-size: 0.9em;
-      margin-top: 5px;
-    }
-  </style>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
-    <h1>NFC Reader/Writer</h1>
-    <a href="/" class="home-link">← Back to Tools</a>
 
-    <div id="support-status"></div>
+<body class="bg-gray-100">
+  <div class="max-w-2xl mx-auto p-6">
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h1 class="text-2xl font-bold mb-4">NFC Reader/Writer</h1>
+      <a href="/" class="text-blue-600 hover:underline mb-4 inline-block">← Back to Tools</a>
 
-    <div id="controls">
-      <h2>Write to NFC Tag</h2>
+      <div id="support-status" class="my-4"></div>
 
-      <div class="encrypt-controls">
-        <label>
-          <input type="checkbox" id="encrypt-data"> Use encryption key
-        </label>
-        <input type="password" id="encryption-key" placeholder="Encryption key" disabled>
+      <div id="controls">
+        <h2 class="text-xl font-semibold mt-6 mb-3">Write to NFC Tag</h2>
+
+        <div class="border border-gray-200 p-4 rounded mb-4">
+          <label class="flex items-center mb-2">
+            <input type="checkbox" id="encrypt-data" class="mr-2">
+            <span>Use encryption key</span>
+          </label>
+          <input type="password" id="encryption-key" placeholder="Encryption key"
+            class="w-full p-2 border border-gray-300 rounded" disabled>
+        </div>
+
+        <div class="mb-4">
+          <label class="flex items-center">
+            <input type="checkbox" id="use-json" class="mr-2">
+            <span>Use JSON editor</span>
+          </label>
+        </div>
+
+        <textarea id="write-text" rows="4" placeholder="Enter text to write to NFC tag"
+          class="w-full p-2 border border-gray-300 rounded mb-3"></textarea>
+        <textarea id="json-editor" class="w-full p-2 border border-gray-300 rounded mb-3 font-mono h-48"
+          style="display: none;" placeholder="Enter valid JSON"></textarea>
+        <div id="json-validation" class="text-red-500 text-sm mb-3"></div>
+
+        <button id="write-button"
+          class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded mb-4">
+          Write to Tag
+        </button>
+
+        <h2 class="text-xl font-semibold mt-6 mb-3">Read from NFC Tag</h2>
+        <button id="read-button"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded mb-4">
+          Read from Tag
+        </button>
+        <textarea id="read-text" rows="4" readonly placeholder="Tag content will appear here"
+          class="w-full p-2 border border-gray-300 rounded"></textarea>
       </div>
-
-      <div>
-        <label>
-          <input type="checkbox" id="use-json"> Use JSON editor
-        </label>
-      </div>
-
-      <textarea id="write-text" rows="4" placeholder="Enter text to write to NFC tag"></textarea>
-      <textarea id="json-editor" class="json-editor" style="display: none;"
-                placeholder="Enter valid JSON"></textarea>
-      <div id="json-validation"></div>
-
-      <button id="write-button">Write to Tag</button>
-
-      <h2>Read from NFC Tag</h2>
-      <button id="read-button">Read from Tag</button>
-      <textarea id="read-text" rows="4" readonly placeholder="Tag content will appear here"></textarea>
+      <div id="status" class="mt-6 p-3 rounded"></div>
     </div>
-    <div id="status"></div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -143,18 +75,31 @@
 
     // Check if Web NFC is supported
     if ('NDEFReader' in window) {
-      supportStatus.innerHTML = '<p class="success">✓ NFC is supported on this device</p>';
+      supportStatus.innerHTML = '<p class="bg-green-100 text-green-800 p-3 rounded">✓ NFC is supported on this device</p>';
     } else {
-      supportStatus.innerHTML = `<p class="error">
+      supportStatus.innerHTML = `<p class="bg-red-100 text-red-800 p-3 rounded">
         ✕ NFC is not supported on this device. Please use Chrome for Android.
       </p>`;
       writeButton.disabled = true;
       readButton.disabled = true;
+      writeButton.classList.add('opacity-50', 'cursor-not-allowed');
+      readButton.classList.add('opacity-50', 'cursor-not-allowed');
     }
 
     function showStatus(message, type = 'info') {
       statusDiv.textContent = message;
-      statusDiv.className = type;
+
+      // Reset classes
+      statusDiv.className = 'mt-6 p-3 rounded';
+
+      // Add appropriate classes based on type
+      if (type === 'success') {
+        statusDiv.classList.add('bg-green-100', 'text-green-800');
+      } else if (type === 'error') {
+        statusDiv.classList.add('bg-red-100', 'text-red-800');
+      } else {
+        statusDiv.classList.add('bg-blue-100', 'text-blue-800');
+      }
     }
 
     useJsonCheckbox.addEventListener('change', (e) => {
@@ -187,20 +132,27 @@
         const text = jsonEditor.value.trim();
         if (text) {
           JSON.parse(text);
-          jsonEditor.classList.remove('validation-error');
+          jsonEditor.classList.remove('border-red-500');
           jsonValidation.textContent = '';
           writeButton.disabled = false;
+          writeButton.classList.remove('opacity-50', 'cursor-not-allowed');
         }
       } catch (err) {
-        jsonEditor.classList.add('validation-error');
+        jsonEditor.classList.add('border-red-500');
         jsonValidation.textContent = 'Invalid JSON: ' + err.message;
         writeButton.disabled = true;
+        writeButton.classList.add('opacity-50', 'cursor-not-allowed');
       }
     });
 
     // encryption
     encryptCheckbox.addEventListener('change', (e) => {
       encryptionKey.disabled = !e.target.checked;
+      if (e.target.checked) {
+        encryptionKey.classList.remove('bg-gray-100');
+      } else {
+        encryptionKey.classList.add('bg-gray-100');
+      }
     })
 
     async function writeToTag() {
@@ -252,7 +204,7 @@
 
         await ndef.scan();
 
-        ndef.addEventListener("reading", ({ message }) => {
+        ndef.addEventListener("reading", ({message}) => {
           for (const record of message.records) {
             if (record.recordType === "text") {
               const textDecoder = new TextDecoder();
@@ -289,7 +241,7 @@
       const eventSource = new EventSource('/nfc/updates');
 
       eventSource.onmessage = (event) => {
-        const {data,format,key} = JSON.parse(event.data);
+        const {data, format, key} = JSON.parse(event.data);
 
         if (format === 'json' || (!format && data.trim().startsWith('{'))) {
           // switch to JSON mode
@@ -315,6 +267,7 @@
           }
           if (encryptionKey.disabled) {
             encryptionKey.disabled = false
+            encryptionKey.classList.remove('bg-gray-100');
           }
           encryptionKey.value = key
         } else {
@@ -324,6 +277,7 @@
           encryptionKey.value = ""
           if (!encryptionKey.disabled) {
             encryptionKey.disabled = true
+            encryptionKey.classList.add('bg-gray-100');
           }
         }
 
@@ -333,4 +287,5 @@
     setupSSE();
   </script>
 </body>
+
 </html>

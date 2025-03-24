@@ -4,7 +4,8 @@
   "description": "A collection of useful web apps",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "bun main.js",
+    "dev": "bun --watch main.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
