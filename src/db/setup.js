@@ -2,6 +2,7 @@ import { Database } from 'bun:sqlite';
 import env from '../utils/env';
 
 const db = new Database(env.DB_PATH);
+db.exec("PRAGMA journal_mode = WAL;");
 
 db.query(`
 CREATE TABLE IF NOT EXISTS users (
