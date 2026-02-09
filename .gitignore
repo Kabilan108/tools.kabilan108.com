@@ -1,5 +1,9 @@
 node_modules/
 *.db
 *.env
+.env*.local
 .aider*
-.env
+.next/
+out/
+build/
+*.tsbuildinfo
