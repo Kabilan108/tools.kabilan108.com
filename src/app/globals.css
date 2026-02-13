@@ -1,37 +1,123 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
-  --foreground: #171717;
-  --muted: #737373;
-  --border: #e5e5e5;
-  --accent: #3b82f6;
-  --card: #ffffff;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card: #141418;
+  --surface: #1c1c22;
+  --border: #2a2a33;
+  --border-focus: #4a4a5a;
+  --muted: #9898a6;
+  --subtle: #5c5c6e;
+  --accent: #7c6aef;
+  --accent-dim: rgba(124, 106, 239, 0.12);
+  --error: #ef4444;
+  --error-dim: rgba(239, 68, 68, 0.1);
+  --success: #34d399;
+  --success-dim: rgba(52, 211, 153, 0.08);
+  --warning: #fbbf24;
+  --warning-dim: rgba(251, 191, 36, 0.08);
+  --info: #60a5fa;
+  --info-dim: rgba(96, 165, 250, 0.1);
+  --radius: 8px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  --color-accent: var(--accent);
   --color-card: var(--card);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-border-focus: var(--border-focus);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-error: var(--error);
+  --color-error-dim: var(--error-dim);
+  --color-success: var(--success);
+  --color-success-dim: var(--success-dim);
+  --color-warning: var(--warning);
+  --color-warning-dim: var(--warning-dim);
+  --color-info: var(--info);
+  --color-info-dim: var(--info-dim);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --muted: #a3a3a3;
-    --border: #262626;
-    --accent: #60a5fa;
-    --card: #171717;
-  }
+  --animate-fade-in: fade-in 0.3s ease;
+  --animate-shake: shake 0.3s ease;
+  --animate-pop-in: pop-in 0.2s ease;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.checkerboard {
+  background-color: #1a1a1f;
+  background-image:
+    linear-gradient(45deg, #22222a 25%, transparent 25%),
+    linear-gradient(-45deg, #22222a 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #22222a 75%),
+    linear-gradient(-45deg, transparent 75%, #22222a 75%);
+  background-size: 20px 20px;
+  background-position:
+    0 0,
+    0 10px,
+    10px -10px,
+    -10px 0;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
 }

@@ -7,7 +7,7 @@ export function Nav() {
   const { user, loading } = useAuth();
 
   return (
-    <nav className="flex items-center justify-between border-b border-border px-6 py-4">
+    <nav className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
       <Link href="/" className="text-lg font-semibold tracking-tight">
         Tools
       </Link>

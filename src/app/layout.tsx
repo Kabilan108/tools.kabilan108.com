@@ -29,11 +29,11 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} flex h-screen flex-col overflow-hidden font-sans antialiased`}
       >
         <AuthKitProvider initialAuth={initialAuth}>
           <Nav />
-          <main>{children}</main>
+          <main className="flex-1 overflow-auto">{children}</main>
         </AuthKitProvider>
       </body>
     </html>

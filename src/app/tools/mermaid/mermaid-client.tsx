@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import styles from './mermaid.module.css';
 
 type ThemeColors = {
   bg: string;
@@ -88,6 +87,12 @@ function enrichTheme(t: ThemeColors): ThemeColors {
     border: t.border || mixColors(t.fg, t.bg, 20),
   };
 }
+
+const STATUS_CLASSES: Record<string, string> = {
+  valid: 'text-success bg-success-dim',
+  error: 'text-error bg-error-dim',
+  idle: 'text-subtle bg-surface',
+};
 
 export default function MermaidClient(): React.ReactElement {
   const [code, setCode] = useState(DEFAULT_CODE);
@@ -279,11 +284,13 @@ export default function MermaidClient(): React.ReactElement {
   const hasSvg = svgOutput.length > 0;
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <div className={styles.logo}>
+    <div className="flex h-full flex-col overflow-hidden bg-background text-foreground">
+      {/* Header */}
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-card px-5 py-3">
+        <div className="flex items-center gap-2.5">
+          <div className="grid h-[22px] w-[22px] place-items-center rounded-[5px] bg-accent">
             <svg
+              className="h-[13px] w-[13px]"
               viewBox="0 0 24 24"
               fill="none"
               stroke="white"
@@ -294,11 +301,11 @@ export default function MermaidClient(): React.ReactElement {
               <path d="M4 6h16M4 12h10M4 18h14" />
             </svg>
           </div>
-          <h1>Mermaid Editor</h1>
+          <h1 className="text-sm font-semibold tracking-tight">Mermaid Editor</h1>
         </div>
-        <div className={styles.headerRight}>
+        <div className="flex items-center gap-2">
           <select
-            className={styles.themeSelect}
+            className="cursor-pointer rounded-lg border border-border bg-surface px-2.5 py-1 text-xs font-medium text-muted outline-none transition-[border-color] duration-150 hover:border-border-focus focus:border-accent"
             value={currentTheme}
             onChange={handleThemeChange}
           >
@@ -308,31 +315,47 @@ export default function MermaidClient(): React.ReactElement {
               </option>
             ))}
           </select>
-          <div className={`${styles.statusPill} ${styles[status]}`}>
-            <span className={styles.statusDot} />
+          <div
+            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-200 ${STATUS_CLASSES[status]}`}
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-current" />
             <span>{statusText}</span>
           </div>
         </div>
       </div>
 
-      <div className={styles.main} ref={mainRef}>
-        <div className={styles.editorPane} ref={editorPaneRef}>
-          <div className={styles.paneHeader}>
-            <span className={styles.paneTitle}>Source</span>
-            <span className={styles.lineCount}>
+      {/* Main split pane */}
+      <div className="flex flex-1 overflow-hidden" ref={mainRef}>
+        {/* Editor pane */}
+        <div
+          className="flex min-w-[300px] flex-col border-r border-border bg-card"
+          style={{ width: '42%' }}
+          ref={editorPaneRef}
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-2.5">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-subtle">
+              Source
+            </span>
+            <span className="font-mono text-[11px] text-subtle">
               {lineCount} line{lineCount !== 1 ? 's' : ''}
             </span>
           </div>
-          <div className={styles.editorWrap}>
-            <div className={styles.lineNumbers} ref={lineNumbersRef}>
+          <div className="flex flex-1 overflow-hidden">
+            <div
+              className="shrink-0 w-11 overflow-hidden select-none pr-3 pt-4 text-right font-mono text-xs leading-5 text-subtle"
+              ref={lineNumbersRef}
+            >
               {lines.map((_, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: line numbers are inherently index-based
-                <div key={`ln${i}`}>{i + 1}</div>
+                <div key={`ln${i}`} className="h-5 leading-5">
+                  {i + 1}
+                </div>
               ))}
             </div>
             <textarea
               ref={editorRef}
-              className={styles.editor}
+              className="flex-1 resize-none border-none bg-transparent py-4 pr-4 pl-2 font-mono text-xs leading-5 text-foreground outline-none"
+              style={{ tabSize: 2 }}
               spellCheck={false}
               placeholder={`Paste your Mermaid diagram here...\n\nExamples:\n  graph TD\n    A[Start] --> B{Decision}\n\n  sequenceDiagram\n    Alice->>Bob: Hello!\n\n  classDiagram\n    Animal <|-- Dog`}
               value={code}
@@ -343,26 +366,35 @@ export default function MermaidClient(): React.ReactElement {
           </div>
         </div>
 
+        {/* Resize handle */}
         <hr
-          className={styles.resizeHandle}
+          className="relative z-10 w-[5px] shrink-0 cursor-col-resize border-none p-0 -ml-[3px] -mr-[2px] after:absolute after:top-0 after:bottom-0 after:left-[2px] after:w-px after:bg-border after:transition-all after:duration-150 hover:after:w-[2px] hover:after:left-[1.5px] hover:after:bg-accent active:after:w-[2px] active:after:left-[1.5px] active:after:bg-accent"
           onMouseDown={(e) => {
             e.preventDefault();
             setIsResizing(true);
           }}
         />
 
-        <div className={styles.previewPane}>
-          <div className={styles.paneHeader}>
-            <span className={styles.paneTitle}>Preview</span>
-            <div className={styles.previewActions}>
+        {/* Preview pane */}
+        <div className="flex flex-1 flex-col overflow-hidden bg-background">
+          <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-2.5">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-subtle">
+              Preview
+            </span>
+            <div className="flex gap-1">
               <button
                 type="button"
-                className={`${styles.actionBtn} ${copied ? styles.copied : ''}`}
+                className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium whitespace-nowrap transition-all duration-150 disabled:cursor-default disabled:opacity-35 ${
+                  copied
+                    ? 'border-success/30 bg-success-dim text-success'
+                    : 'border-border bg-surface text-subtle hover:border-border-focus hover:text-muted hover:bg-card active:scale-[0.97]'
+                }`}
                 disabled={!hasSvg}
                 onClick={handleCopy}
                 title="Copy SVG"
               >
                 <svg
+                  className="h-[13px] w-[13px] shrink-0"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -378,12 +410,13 @@ export default function MermaidClient(): React.ReactElement {
               </button>
               <button
                 type="button"
-                className={styles.actionBtn}
+                className="flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-[11px] font-medium whitespace-nowrap text-subtle transition-all duration-150 hover:border-border-focus hover:text-muted hover:bg-card active:scale-[0.97] disabled:cursor-default disabled:opacity-35"
                 disabled={!hasSvg}
                 onClick={handleDownload}
                 title="Download SVG"
               >
                 <svg
+                  className="h-[13px] w-[13px] shrink-0"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -400,11 +433,12 @@ export default function MermaidClient(): React.ReactElement {
               </button>
             </div>
           </div>
-          <div className={styles.previewWrap}>
-            <div className={styles.preview}>
+          <div className="checkerboard flex flex-1 items-center justify-center overflow-auto p-8">
+            <div className="max-w-full transition-opacity duration-150 [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:block [&_svg]:rounded-lg [&_svg]:shadow-[0_2px_20px_rgba(0,0,0,0.3)]">
               {error ? (
-                <div className={styles.errorDisplay}>
+                <div className="flex max-w-[480px] items-start gap-2.5 rounded-lg border border-error/20 bg-error-dim p-3.5 animate-shake">
                   <svg
+                    className="mt-px h-4 w-4 shrink-0 text-error"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -415,18 +449,21 @@ export default function MermaidClient(): React.ReactElement {
                     <line x1="15" y1="9" x2="9" y2="15" />
                     <line x1="9" y1="9" x2="15" y2="15" />
                   </svg>
-                  <p>{error}</p>
+                  <p className="break-words font-mono text-[11px] leading-relaxed text-error">
+                    {error}
+                  </p>
                 </div>
               ) : svgOutput ? (
                 <div
-                  className={styles.rendered}
+                  className="animate-pop-in"
                   // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG from our renderer
                   dangerouslySetInnerHTML={{ __html: svgOutput }}
                 />
               ) : (
-                <div className={styles.placeholder}>
-                  <div className={styles.placeholderIcon}>
+                <div className="flex flex-col items-center gap-3 text-center text-subtle animate-fade-in">
+                  <div className="grid h-12 w-12 place-items-center rounded-xl border border-dashed border-border bg-surface">
                     <svg
+                      className="h-[22px] w-[22px] opacity-40"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -437,8 +474,10 @@ export default function MermaidClient(): React.ReactElement {
                       <path d="M3 9h18M9 3v18" />
                     </svg>
                   </div>
-                  <p>Type or paste Mermaid syntax to see your diagram rendered live</p>
-                  <span className={styles.hint}>
+                  <p className="max-w-[260px] text-[13px] leading-relaxed">
+                    Type or paste Mermaid syntax to see your diagram rendered live
+                  </p>
+                  <span className="text-[11px] text-subtle opacity-60">
                     Supports flowcharts, sequence, class, ER &amp; state diagrams
                   </span>
                 </div>

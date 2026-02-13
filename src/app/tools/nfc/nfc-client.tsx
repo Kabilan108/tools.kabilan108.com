@@ -9,9 +9,9 @@ interface Status {
 }
 
 const statusColors: Record<Status['type'], string> = {
-  info: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  success: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-  error: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+  info: 'bg-info-dim text-info',
+  success: 'bg-success-dim text-success',
+  error: 'bg-error-dim text-error',
 };
 
 async function encryptAesGcm(plaintext: string, password: string): Promise<string> {
@@ -182,7 +182,7 @@ export function NfcClient(): React.ReactElement {
   }, [useEncryption, encryptionKey, showStatus]);
 
   return (
-    <div className="flex min-h-screen items-start justify-center bg-background px-4 py-12">
+    <div className="flex items-start justify-center px-4 py-12">
       <div className="w-full max-w-2xl space-y-6">
         <Link href="/" className="text-sm text-muted hover:text-foreground">
           &larr; Back
@@ -192,9 +192,7 @@ export function NfcClient(): React.ReactElement {
 
         <div
           className={`rounded-lg px-4 py-3 text-sm font-medium ${
-            nfcSupported
-              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-              : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+            nfcSupported ? 'bg-success-dim text-success' : 'bg-error-dim text-error'
           }`}
         >
           {nfcSupported
@@ -235,7 +233,7 @@ export function NfcClient(): React.ReactElement {
                 {useJson ? 'Switch to Text' : 'Switch to JSON'}
               </button>
               {useJson && jsonError && (
-                <span className="text-xs text-red-500">{jsonError}</span>
+                <span className="text-xs text-error">{jsonError}</span>
               )}
             </div>
 
@@ -262,7 +260,7 @@ export function NfcClient(): React.ReactElement {
               type="button"
               onClick={writeToTag}
               disabled={!nfcSupported}
-              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-success px-4 py-2 text-sm font-medium text-background hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Write to Tag
             </button>
@@ -276,7 +274,7 @@ export function NfcClient(): React.ReactElement {
             type="button"
             onClick={readFromTag}
             disabled={!nfcSupported}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-info px-4 py-2 text-sm font-medium text-background hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Read from Tag
           </button>
