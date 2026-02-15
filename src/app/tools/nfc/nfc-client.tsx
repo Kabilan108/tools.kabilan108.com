@@ -1,18 +1,20 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+import {
+  Prompt,
+  Section,
+  TuiBackLink,
+  TuiButton,
+  TuiInput,
+  TuiStatus,
+  TuiTextarea,
+} from '@/components/tui';
 
 interface Status {
   message: string;
   type: 'info' | 'success' | 'error';
 }
-
-const statusColors: Record<Status['type'], string> = {
-  info: 'bg-info-dim text-info',
-  success: 'bg-success-dim text-success',
-  error: 'bg-error-dim text-error',
-};
 
 async function encryptAesGcm(plaintext: string, password: string): Promise<string> {
   const enc = new TextEncoder();
@@ -163,10 +165,7 @@ export function NfcClient(): React.ReactElement {
               try {
                 text = await decryptAesGcm(text, encryptionKey);
               } catch {
-                showStatus(
-                  'Decryption failed \u2014 wrong key or corrupted data',
-                  'error',
-                );
+                showStatus('Decryption failed — wrong key or corrupted data', 'error');
                 return;
               }
             }
@@ -182,119 +181,120 @@ export function NfcClient(): React.ReactElement {
   }, [useEncryption, encryptionKey, showStatus]);
 
   return (
-    <div className="flex items-start justify-center px-4 py-12">
-      <div className="w-full max-w-2xl space-y-6">
-        <Link href="/" className="text-sm text-muted hover:text-foreground">
-          &larr; Back
-        </Link>
+    <div className="flex h-full flex-col overflow-y-auto px-5 py-4 text-sm leading-relaxed">
+      <TuiBackLink />
 
-        <h1 className="text-2xl font-semibold tracking-tight">NFC Reader/Writer</h1>
+      <div className="mt-4">
+        <Prompt command="man nfc" />
+      </div>
 
-        <div
-          className={`rounded-lg px-4 py-3 text-sm font-medium ${
-            nfcSupported ? 'bg-success-dim text-success' : 'bg-error-dim text-error'
-          }`}
-        >
-          {nfcSupported
-            ? 'Web NFC is supported on this device'
-            : 'Web NFC is not supported on this device/browser'}
-        </div>
+      <div className="mt-2">
+        <Section heading="NAME">
+          <p>
+            <span className="font-bold text-foreground">nfc</span>
+            <span className="text-muted">
+              {' '}
+              — read and write NFC tags with AES encryption
+            </span>
+          </p>
+        </Section>
 
-        <div className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm">
-          <h2 className="text-lg font-medium">Write to NFC Tag</h2>
+        <Section heading="STATUS">
+          <p className={nfcSupported ? 'text-success' : 'text-error'}>
+            Web NFC: {nfcSupported ? 'supported' : 'not supported'}
+          </p>
+        </Section>
 
-          <div className="space-y-4">
-            <label className="flex items-center gap-2 text-sm">
+        <Section heading="OPTIONS">
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={useEncryption}
                 onChange={(e) => setUseEncryption(e.target.checked)}
-                className="rounded"
               />
-              Enable AES encryption
+              <span className="text-foreground">--encrypt</span>
+              <span className="text-muted">Enable AES-GCM encryption</span>
             </label>
 
             {useEncryption && (
-              <input
-                type="password"
-                placeholder="Encryption key"
-                value={encryptionKey}
-                onChange={(e) => setEncryptionKey(e.target.value)}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent"
-              />
+              <div className="ml-[5ch]">
+                <span className="text-foreground">--key=</span>
+                <TuiInput
+                  type="password"
+                  placeholder="encryption key"
+                  value={encryptionKey}
+                  onChange={(e) => setEncryptionKey(e.target.value)}
+                  className="mt-1 max-w-xs"
+                />
+              </div>
             )}
 
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={toggleJsonMode}
-                className="rounded-md border border-border px-3 py-1 text-xs font-medium hover:bg-background"
-              >
-                {useJson ? 'Switch to Text' : 'Switch to JSON'}
-              </button>
-              {useJson && jsonError && (
-                <span className="text-xs text-error">{jsonError}</span>
-              )}
+              <span className="text-foreground">--format=</span>
+              <TuiButton onClick={toggleJsonMode}>
+                {useJson ? 'json' : 'text'}
+              </TuiButton>
+              {useJson && jsonError && <span className="text-error">{jsonError}</span>}
             </div>
+          </div>
+        </Section>
 
+        <Section heading="WRITE">
+          <div className="space-y-2">
             {useJson ? (
-              <textarea
+              <TuiTextarea
                 value={jsonContent}
                 onChange={(e) => handleJsonChange(e.target.value)}
                 rows={8}
                 spellCheck={false}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none focus:ring-2 focus:ring-accent"
+                className="max-w-lg font-mono"
                 placeholder='{"key": "value"}'
               />
             ) : (
-              <textarea
+              <TuiTextarea
                 value={writeText}
                 onChange={(e) => setWriteText(e.target.value)}
                 rows={4}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent"
+                className="max-w-lg"
                 placeholder="Enter text to write to tag"
               />
             )}
-
-            <button
-              type="button"
-              onClick={writeToTag}
-              disabled={!nfcSupported}
-              className="rounded-lg bg-success px-4 py-2 text-sm font-medium text-background hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Write to Tag
-            </button>
+            <div>
+              <TuiButton onClick={writeToTag} disabled={!nfcSupported}>
+                [write to tag]
+              </TuiButton>
+            </div>
           </div>
-        </div>
+        </Section>
 
-        <div className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm">
-          <h2 className="text-lg font-medium">Read from NFC Tag</h2>
-
-          <button
-            type="button"
-            onClick={readFromTag}
-            disabled={!nfcSupported}
-            className="rounded-lg bg-info px-4 py-2 text-sm font-medium text-background hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Read from Tag
-          </button>
-
-          <textarea
-            value={readResult}
-            readOnly
-            rows={4}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
-            placeholder="Tag data will appear here"
-          />
-        </div>
+        <Section heading="READ">
+          <div className="space-y-2">
+            <div>
+              <TuiButton onClick={readFromTag} disabled={!nfcSupported}>
+                [read from tag]
+              </TuiButton>
+            </div>
+            <TuiTextarea
+              value={readResult}
+              readOnly
+              rows={4}
+              className="max-w-lg"
+              placeholder="Tag data will appear here"
+            />
+          </div>
+        </Section>
 
         {status && (
-          <div
-            className={`rounded-lg px-4 py-3 text-sm font-medium ${statusColors[status.type]}`}
-          >
-            {status.message}
+          <div className="mt-3">
+            <TuiStatus type={status.type} message={status.message} />
           </div>
         )}
+      </div>
+
+      <div className="mt-auto pt-4">
+        <Prompt />
+        <span className="cursor-blink text-success">█</span>
       </div>
     </div>
   );

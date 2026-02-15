@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { TuiSelect } from '@/components/tui';
 
 type ThemeColors = {
   bg: string;
@@ -87,12 +88,6 @@ function enrichTheme(t: ThemeColors): ThemeColors {
     border: t.border || mixColors(t.fg, t.bg, 20),
   };
 }
-
-const STATUS_CLASSES: Record<string, string> = {
-  valid: 'text-success bg-success-dim',
-  error: 'text-error bg-error-dim',
-  idle: 'text-subtle bg-surface',
-};
 
 export default function MermaidClient(): React.ReactElement {
   const [code, setCode] = useState(DEFAULT_CODE);
@@ -283,66 +278,47 @@ export default function MermaidClient(): React.ReactElement {
   const lineCount = lines.length;
   const hasSvg = svgOutput.length > 0;
 
+  const statusColor =
+    status === 'valid'
+      ? 'text-success'
+      : status === 'error'
+        ? 'text-error'
+        : 'text-subtle';
+
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-background text-foreground">
+    <div className="flex h-full flex-col overflow-hidden text-foreground">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-card px-5 py-3">
-        <div className="flex items-center gap-2.5">
-          <div className="grid h-[22px] w-[22px] place-items-center rounded-[5px] bg-accent">
-            <svg
-              className="h-[13px] w-[13px]"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <path d="M4 6h16M4 12h10M4 18h14" />
-            </svg>
-          </div>
-          <h1 className="text-sm font-semibold tracking-tight">Mermaid Editor</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            className="cursor-pointer rounded-lg border border-border bg-surface px-2.5 py-1 text-xs font-medium text-muted outline-none transition-[border-color] duration-150 hover:border-border-focus focus:border-accent"
-            value={currentTheme}
-            onChange={handleThemeChange}
-          >
+      <div className="flex shrink-0 items-center justify-between border-b border-border-focus px-4 py-1.5 text-xs">
+        <span className="font-bold text-foreground">MERMAID(1)</span>
+        <div className="flex items-center gap-3">
+          <TuiSelect value={currentTheme} onChange={handleThemeChange}>
             {Object.entries(THEME_LABELS).map(([key, label]) => (
               <option key={key} value={key}>
                 {label}
               </option>
             ))}
-          </select>
-          <div
-            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-200 ${STATUS_CLASSES[status]}`}
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-current" />
-            <span>{statusText}</span>
-          </div>
+          </TuiSelect>
+          <span className={statusColor}>[{statusText}]</span>
         </div>
       </div>
 
-      {/* Main split pane */}
+      {/* Split pane */}
       <div className="flex flex-1 overflow-hidden" ref={mainRef}>
         {/* Editor pane */}
         <div
-          className="flex min-w-[300px] flex-col border-r border-border bg-card"
+          className="flex min-w-[300px] flex-col border-r border-border-focus"
           style={{ width: '42%' }}
           ref={editorPaneRef}
         >
-          <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-2.5">
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-subtle">
-              Source
-            </span>
-            <span className="font-mono text-[11px] text-subtle">
+          <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-1.5 text-xs">
+            <span className="text-subtle">── SOURCE ──</span>
+            <span className="text-subtle">
               {lineCount} line{lineCount !== 1 ? 's' : ''}
             </span>
           </div>
           <div className="flex flex-1 overflow-hidden">
             <div
-              className="shrink-0 w-11 overflow-hidden select-none pr-3 pt-4 text-right font-mono text-xs leading-5 text-subtle"
+              className="w-11 shrink-0 select-none overflow-hidden pr-3 pt-4 text-right text-xs leading-5 text-subtle"
               ref={lineNumbersRef}
             >
               {lines.map((_, i) => (
@@ -354,7 +330,7 @@ export default function MermaidClient(): React.ReactElement {
             </div>
             <textarea
               ref={editorRef}
-              className="flex-1 resize-none border-none bg-transparent py-4 pr-4 pl-2 font-mono text-xs leading-5 text-foreground outline-none"
+              className="flex-1 resize-none border-none bg-transparent py-4 pr-4 pl-2 text-xs leading-5 text-foreground outline-none"
               style={{ tabSize: 2 }}
               spellCheck={false}
               placeholder={`Paste your Mermaid diagram here...\n\nExamples:\n  graph TD\n    A[Start] --> B{Decision}\n\n  sequenceDiagram\n    Alice->>Bob: Hello!\n\n  classDiagram\n    Animal <|-- Dog`}
@@ -368,7 +344,7 @@ export default function MermaidClient(): React.ReactElement {
 
         {/* Resize handle */}
         <hr
-          className="relative z-10 w-[5px] shrink-0 cursor-col-resize border-none p-0 -ml-[3px] -mr-[2px] after:absolute after:top-0 after:bottom-0 after:left-[2px] after:w-px after:bg-border after:transition-all after:duration-150 hover:after:w-[2px] hover:after:left-[1.5px] hover:after:bg-accent active:after:w-[2px] active:after:left-[1.5px] active:after:bg-accent"
+          className="relative z-10 w-[5px] shrink-0 cursor-col-resize border-none p-0 -ml-[3px] -mr-[2px] after:absolute after:top-0 after:bottom-0 after:left-[2px] after:w-px after:bg-border-focus after:transition-all after:duration-150 hover:after:w-[2px] hover:after:left-[1.5px] hover:after:bg-accent active:after:w-[2px] active:after:left-[1.5px] active:after:bg-accent"
           onMouseDown={(e) => {
             e.preventDefault();
             setIsResizing(true);
@@ -376,111 +352,42 @@ export default function MermaidClient(): React.ReactElement {
         />
 
         {/* Preview pane */}
-        <div className="flex flex-1 flex-col overflow-hidden bg-background">
-          <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-2.5">
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-subtle">
-              Preview
-            </span>
-            <div className="flex gap-1">
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-1.5 text-xs">
+            <span className="text-subtle">── PREVIEW ──</span>
+            <div className="flex gap-2">
               <button
                 type="button"
-                className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium whitespace-nowrap transition-all duration-150 disabled:cursor-default disabled:opacity-35 ${
-                  copied
-                    ? 'border-success/30 bg-success-dim text-success'
-                    : 'border-border bg-surface text-subtle hover:border-border-focus hover:text-muted hover:bg-card active:scale-[0.97]'
+                className={`text-xs transition-colors disabled:opacity-35 ${
+                  copied ? 'text-success' : 'text-subtle hover:text-foreground'
                 }`}
                 disabled={!hasSvg}
                 onClick={handleCopy}
-                title="Copy SVG"
               >
-                <svg
-                  className="h-[13px] w-[13px] shrink-0"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <rect x="9" y="9" width="13" height="13" rx="2" />
-                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                </svg>
-                <span>{copied ? 'Copied!' : 'Copy SVG'}</span>
+                [{copied ? 'copied!' : 'copy'}]
               </button>
               <button
                 type="button"
-                className="flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-[11px] font-medium whitespace-nowrap text-subtle transition-all duration-150 hover:border-border-focus hover:text-muted hover:bg-card active:scale-[0.97] disabled:cursor-default disabled:opacity-35"
+                className="text-xs text-subtle transition-colors hover:text-foreground disabled:opacity-35"
                 disabled={!hasSvg}
                 onClick={handleDownload}
-                title="Download SVG"
               >
-                <svg
-                  className="h-[13px] w-[13px] shrink-0"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                <span>Download</span>
+                [save]
               </button>
             </div>
           </div>
-          <div className="checkerboard flex flex-1 items-center justify-center overflow-auto p-8">
-            <div className="max-w-full transition-opacity duration-150 [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:block [&_svg]:rounded-lg [&_svg]:shadow-[0_2px_20px_rgba(0,0,0,0.3)]">
+          <div className="flex flex-1 items-center justify-center overflow-auto bg-surface p-8">
+            <div className="max-w-full transition-opacity duration-150 [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:block">
               {error ? (
-                <div className="flex max-w-[480px] items-start gap-2.5 rounded-lg border border-error/20 bg-error-dim p-3.5 animate-shake">
-                  <svg
-                    className="mt-px h-4 w-4 shrink-0 text-error"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    aria-hidden="true"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="15" y1="9" x2="9" y2="15" />
-                    <line x1="9" y1="9" x2="15" y2="15" />
-                  </svg>
-                  <p className="break-words font-mono text-[11px] leading-relaxed text-error">
-                    {error}
-                  </p>
-                </div>
+                <p className="max-w-[480px] text-xs text-error">error: {error}</p>
               ) : svgOutput ? (
                 <div
-                  className="animate-pop-in"
+                  className="animate-fade-in"
                   // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG from our renderer
                   dangerouslySetInnerHTML={{ __html: svgOutput }}
                 />
               ) : (
-                <div className="flex flex-col items-center gap-3 text-center text-subtle animate-fade-in">
-                  <div className="grid h-12 w-12 place-items-center rounded-xl border border-dashed border-border bg-surface">
-                    <svg
-                      className="h-[22px] w-[22px] opacity-40"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      aria-hidden="true"
-                    >
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <path d="M3 9h18M9 3v18" />
-                    </svg>
-                  </div>
-                  <p className="max-w-[260px] text-[13px] leading-relaxed">
-                    Type or paste Mermaid syntax to see your diagram rendered live
-                  </p>
-                  <span className="text-[11px] text-subtle opacity-60">
-                    Supports flowcharts, sequence, class, ER &amp; state diagrams
-                  </span>
-                </div>
+                <p className="text-xs text-subtle">(no diagram)</p>
               )}
             </div>
           </div>
