@@ -14,6 +14,7 @@
 - **Auth**: WorkOS AuthKit (`@workos-inc/authkit-nextjs`)
 - **Logging**: pino for structured server-side logging
 - **Imports**: Use `@/*` alias for `src/` directory
+- **No emoji**: Do not use emoji anywhere in the codebase — not in code, data, or UI text. Use plain text or Unicode symbols only.
 
 ## Project Structure
 - `src/app/` - Next.js App Router pages and layouts
