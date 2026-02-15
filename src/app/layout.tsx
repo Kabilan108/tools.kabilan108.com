@@ -1,14 +1,9 @@
 import { withAuth } from '@workos-inc/authkit-nextjs';
 import { AuthKitProvider } from '@workos-inc/authkit-nextjs/components';
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import { Nav } from '@/components/nav';
+import { Geist_Mono } from 'next/font/google';
+import { StatusBar } from '@/components/status-bar';
 import './globals.css';
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
@@ -29,11 +24,31 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} flex h-screen flex-col overflow-hidden font-sans antialiased`}
+        className={`${geistMono.variable} flex h-screen flex-col overflow-hidden font-mono antialiased`}
       >
         <AuthKitProvider initialAuth={initialAuth}>
-          <Nav />
-          <main className="flex-1 overflow-auto">{children}</main>
+          <div className="flex h-full flex-col">
+            <div className="flex h-full flex-col border-x border-border-focus">
+              {/* Title bar */}
+              <div className="flex shrink-0 items-center justify-between border-b border-border-focus bg-surface px-4 py-1.5 text-sm text-muted">
+                <div className="flex items-center gap-2">
+                  <span className="text-success">●</span>
+                  <span>tools.kabilan108.com — bash</span>
+                </div>
+                <div className="flex gap-3 text-subtle">
+                  <span>─</span>
+                  <span>□</span>
+                  <span className="text-muted">×</span>
+                </div>
+              </div>
+
+              {/* Terminal body */}
+              <main className="flex-1 overflow-auto">{children}</main>
+
+              {/* Status bar */}
+              <StatusBar />
+            </div>
+          </div>
         </AuthKitProvider>
       </body>
     </html>
